@@ -8,8 +8,6 @@
 
 using namespace std;
 
-char *g_filePath = "temp.bin";
-
 /*
  * Use temporary structure for passing multiple aruguments
  * to worker thread
@@ -19,6 +17,9 @@ struct threadParams {
   Pipe *outPipe;
   OrderMaker *sortOrder;
   int runLen;
+#ifdef DEBUG
+  Schema *schema;
+#endif
 };
 typedef struct threadParams threadParams_t;
 
@@ -28,6 +29,8 @@ class recOnVector {
     int    currPageNumber;
     int    currRunNumber;
 
+
+
     recOnVector();
     ~recOnVector();
 };
@@ -36,12 +39,27 @@ class BigQ {
 
 public:
 
+
+#ifdef DEBUG
+	Schema *schema;
+#endif
   Pipe *inPipe;
   Pipe *outPipe;
   OrderMaker *sortOrder;
   int runLen;
 
-	BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen);
+#ifdef DEBUG
+	BigQ (Pipe &in, 
+        Pipe &out, 
+        OrderMaker &sortorder, 
+        int runlen,
+        Schema *schema);
+#else
+	BigQ (Pipe &in, 
+        Pipe &out, 
+        OrderMaker &sortorder, 
+        int runlen);
+#endif
 	~BigQ ();
 };
 

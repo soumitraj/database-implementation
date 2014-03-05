@@ -60,6 +60,7 @@ void *consumer (void *arg) {
 				dbfile.Add (*prev);
 			}
 		}
+	//	cout<<"\nReady to Print:"<<i<<endl;
 		if (t->print) {
 			last->Print (rel->schema ());
 		}
@@ -94,6 +95,8 @@ void test1 (int option, int runlen) {
 
 	// thread to dump data into the input pipe (for BigQ's consumption)
 	pthread_t thread1;
+
+	cout << "Create Producer ";
 	pthread_create (&thread1, NULL, producer, (void *)&input);
 
 	// thread to read sorted data from output pipe (dumped by BigQ)
@@ -107,7 +110,11 @@ void test1 (int option, int runlen) {
 	}
 	pthread_create (&thread2, NULL, consumer, (void *)&tutil);
 
+#ifdef DEBUG
+	BigQ bq (input, output, sortorder, runlen,rel->schema ());
+#else
 	BigQ bq (input, output, sortorder, runlen);
+#endif
 
 	pthread_join (thread1, NULL);
 	pthread_join (thread2, NULL);

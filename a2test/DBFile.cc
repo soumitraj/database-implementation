@@ -57,28 +57,30 @@ void DBFile::Load (Schema &f_schema, char *loadpath) {
    */
   while(currRecord->SuckNextRecord(&f_schema, tblFile)) {
 
-      /* 
+      /*
        * Append the sucked record to page
        */
-      appendStatus = currPage.Append(currRecord); 
+      appendStatus = currPage.Append(currRecord);
 
-      /* 
+      /*
        * If page is full, write the page to file
        */
       if(0 == appendStatus) {
+
 
         currFile.AddPage(&currPage, currFile.GetLength());
 
         appendStatus = 1;
 
-        /* 
-         * Flush the page to re-use it to store further records 
+        /*
+         * Flush the page to re-use it to store further records
          */
         currPage.EmptyItOut();
+        currPage.Append(currRecord);
       }
   }
 
-  /* 
+  /*
    * Wri te this page to file although not full because,
    * we have sucked all records from file
    */
@@ -119,13 +121,16 @@ void DBFile::MoveFirst () {
   /*
    * Check if file really contain any records
    */
+
+//	cout << " Move First";
   if(currFile.GetLength()==0){
     cout << "Bad operation , File Empty" ;
   }
   else{
-    currPageIndex = 1;
+//	  cout << " Inside DB FIle Move First currPageIndex : "<<currPageIndex<<endl;
+    currPageIndex = 0;
     currFile.MoveFirst();
-    currFile.GetPage(&currPage, currPageIndex);
+    currFile.GetPage(&currPage, currPageIndex++);
     pageReadInProg = 1;
   }
 }
@@ -156,12 +161,16 @@ void DBFile::Add (Record &rec) {
 
 int DBFile::GetNext (Record &fetchme)
 {
-  //cout<< " current page index :" << currPageIndex;
-  //cout<< " current page length :" << currFile.GetLength();
+//  cout<< " current page index :" << currPageIndex << endl;
+//  cout<< " current page length :" << currFile.GetLength() << endl;
+
+	//cout << " Inside DB FIle GetNExt Page" << endl;
 
   if(pageReadInProg==0) {
     // currPageIndex = 460;
+//	  cout << "GetPage 1"<< currPageIndex << endl;
     currFile.GetPage(&currPage, currPageIndex);
+    currPageIndex= currPageIndex +1;
     pageReadInProg = 1;
   }
 
@@ -173,9 +182,10 @@ int DBFile::GetNext (Record &fetchme)
   }
   else{
 
-    if(!(++currPageIndex >= currFile.GetLength()))
-    {
-      currFile.GetPage(&currPage, currPageIndex);
+    if(!(currPageIndex > currFile.GetLength()-2))
+    {//cout << "GetPage 2  page index :"<< currPageIndex << endl;
+      currFile.GetPage(&currPage, currPageIndex++);
+      pageReadInProg++;
       currPage.GetFirst(&fetchme);
       return 1;
     }
@@ -187,7 +197,7 @@ int DBFile::GetNext (Record &fetchme)
 
 int DBFile::GetNext (Record &fetchme, CNF &myComparison, Record &literal) {
 
-	/* 
+	/*
    * now open up the text file and start procesing it
    * read in all of the records from the text file and see if they match
 	 * the CNF expression that was typed in

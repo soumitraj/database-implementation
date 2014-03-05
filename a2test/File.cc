@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-
+using namespace std;
 
 Page :: Page () {
 	curSizeInBytes = sizeof (int);
@@ -67,6 +67,20 @@ int Page :: GetFirst (Record *firstOne) {
 int Page :: Append (Record *addMe) {
 	char *b = addMe->GetBits();
 
+
+/*
+
+if(((int *)addMe->bits)==0)
+{
+	cout<< " Corrent size " << curSizeInBytes << " Current Page Zise :"<<PAGE_SIZE<< " bits :" << (int *)addMe->bits << endl;
+	return 0;
+
+}
+*/
+
+
+
+
 	// first see if we can fit the record
 	if (curSizeInBytes + ((int *) b)[0] > PAGE_SIZE) {
 		return 0;
@@ -111,8 +125,10 @@ void Page :: FromBinary (char *bits) {
 	// first read the number of records on the page
 	numRecs = ((int *) bits)[0];
 
+	if(numRecs==0)
+		cout << " Page with zero record" << endl;
 	// sanity check
-	if (numRecs > 1000000 || numRecs < 0) {
+	if (numRecs > 1000000 || numRecs <0) {
 		cerr << "This is probably an error.  Found " << numRecs << " records on a page.\n";
 		exit (1);
 	}
@@ -164,7 +180,6 @@ File :: ~File () {
 
 
 void File :: GetPage (Page *putItHere, off_t whichPage) {
-
 	// this is because the first page has no data
 	whichPage++;
 
@@ -184,6 +199,9 @@ void File :: GetPage (Page *putItHere, off_t whichPage) {
 
 	lseek (myFilDes, PAGE_SIZE * whichPage, SEEK_SET);
 	read (myFilDes, bits, PAGE_SIZE);
+#ifdef DEBUG
+	cout << " Numrecs :" << ((int *) bits)[0] << " Which Page :" <<whichPage;
+#endif
 	putItHere->FromBinary (bits);
 	delete [] bits;
 	
